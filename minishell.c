@@ -39,11 +39,13 @@ int process_str(char *str,char arglist[100][100],int *nargs)
 
 int main( int argc, char **argv)
 {
-	int n,argno=0,i=0,fd1,fd2,pos;
+	int n,argno=0,i=0,fd1,fd2,pos,h;
 	char ch;
 	char path[100],buf[100],path1[100],path2[100];
 	char str[100], arglist[100][100];
+	h=open("myhistory.txt",O_RDWR|O_CREAT,0666);
 	printf("WELCOME TO MINI-LINUX\n");
+	printf("My minishell commands are mycat, myhead, mytail, mycp, myrm\n");
 	while(1)
 	{
 
@@ -51,15 +53,31 @@ int main( int argc, char **argv)
     	argno=0;
     	fflush(stdin);
     	n= read(0,str,100);
-    	memset(arglist,0,100);
+    	memset(arglist,0,sizeof(arglist));
     	str[n]='\0';
     	process_str(str,arglist,&argno);
     	for(i=0;i<=argno;i++)
     	{
         	printf("Arguments passed = '%s' \n",arglist[i]);
+	
     	}
+		 write(h,arglist[0],sizeof(arglist[0]));
+		if(strcmp(arglist[0],"myhistory")==0)
+		{
+			fd1=open("myhistory.txt",O_RDONLY);
+			while(1)
+                {
+                        n = read(fd1,&ch,1);
+                        if (n==0)
+                        break;
+                        else
+                        printf("%c",ch);
+                }
+                close(fd1);
+		}		
 
-        	if(strcmp(arglist[0],"mycp")==0)
+
+		else if(strcmp(arglist[0],"mycp")==0)
             	{
             	printf("This is my version of cp command\n");
             	strcat(path,arglist[i]);
@@ -67,39 +85,60 @@ int main( int argc, char **argv)
                 	if(fd1<0)
             	{
                 	printf("Open Error\n");
-                	exit(1);
             	}
-           	 
+			else
+			{
             	strcpy(path,"./");
             	strcat(path,arglist[2]);
             	printf("dest path = %s\n",path);
             	fd2= open(arglist[2],O_RDWR|O_CREAT, 0666);
 
-            	if(fd2<0)
-            	{
+            			if(fd2<0)
+            			{
                 	printf("Open Error\n");
-                	exit(1);
-            	}
+            			}
+				else
+				{
             	while((n=read(fd1,buf,100))>0)
             	{
                 	write(fd2,buf,n);
             	}
             	close(fd1);
             	close(fd2);
+				}
+			}
             	}
+
+
+
         	else if(strcmp(arglist[0],"mymv")==0)
            	{
+			fd1 = open(arglist[1],O_RDONLY);
+			fd2 =open(arglist[1],O_RDONLY);
+                if(fd1<0||fd2<0){
+                        printf("source/destination file not found, cat not possible\n");
+                }
+		else 
+		{
         	strcpy(path1,"./");
         	strcpy(path2,"./");
         	strcat(path1,arglist[1]);
         	strcat(path2,arglist[2]);
         	rename(path1,path2);
+		}
 
            	}
+
+
         	else if(strcmp(arglist[0],"mycat")==0)
             	{
             	printf("This is my version of cat command\n");
             	fd1 = open(arglist[1],O_RDONLY);
+		if(fd1<0){
+			printf("source file not found, cat not possible\n");
+		}
+		else
+		{
             	while(1)
             	{
                 	n = read(fd1,&ch,1);
@@ -109,21 +148,25 @@ int main( int argc, char **argv)
                     	printf("%c",ch);
             	}
             	close(fd1);
-   	 
+		}
             	}
 
+
         	else if(strcmp(arglist[0],"myrm")==0)
-    	{
+	    	{
         	printf("This is my version of rm command\n");
         	fd1=open(arglist[1],O_RDONLY);
-        	if(fd1==0)
+        	if(fd1<0)
         	{
-            	printf("Source File not found, Copy noy possible\n");
-            	exit(0);
+            	printf("Source File not found, Copy not possible\n");
         	}
+		else
+		{
         	close(fd1);
         	unlink(arglist[1]);
+		}
     	}
+
 
 
     	else if(strcmp(arglist[0],"mytail")==0)
@@ -133,9 +176,9 @@ int main( int argc, char **argv)
  	 
     	if( fp == NULL )
        	{
-    	printf("\n%s file can not be opened !!!\n",arglist[1]);
-    	return 1;   
+    	printf("\n%s file can not be opened !!!\n",arglist[1]);   
         	}
+	else {
     	char message[10][511],buffer[511];
     
     	while(fgets(buffer,511,fp)){
@@ -148,6 +191,9 @@ int main( int argc, char **argv)
     	printf("%s",message[(i+n++)%10]);
    	 
     	}
+	}
+
+
 
     	else if(strcmp(arglist[0],"myhead")==0)
     	{
@@ -158,12 +204,12 @@ int main( int argc, char **argv)
     	 
         	fp = fopen(arglist[1],"r");
         	if( fp == NULL )
-       	{
+       		{
         	printf("\n%s file can not be opened !!!\n",arglist[1]);
-        	return 1;   
+        	   
         	}
- 
-     	 
+ 		else
+		{
         	while (getline(&line, &len, fp) != -1)
         	{
             	cnt++;
@@ -173,14 +219,20 @@ int main( int argc, char **argv)
            	fflush(stdout);
         	}
         	fclose(fp);
+		}
     	}
- 	 
+ 	
+
+
  	else if(strcmp(arglist[0],"exit")==0)
 	{
     	printf("Exiting from the program\n");
     	exit(1);
 	}
-
+	
+		else {
+			printf("wrong command passed\n");
+		}
 
 	}
 }
