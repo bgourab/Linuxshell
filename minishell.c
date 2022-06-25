@@ -43,7 +43,6 @@ int main( int argc, char **argv)
 	char ch;
 	char path[100],buf[100],path1[100],path2[100];
 	char str[100], arglist[100][100];
-	h=open("myhistory.txt",O_RDWR|O_CREAT,0666);
 	printf("WELCOME TO MINI-LINUX\n");
 	printf("My minishell commands are mycat, myhead, mytail, mycp, myrm\n");
 	while(1)
@@ -56,12 +55,14 @@ int main( int argc, char **argv)
     	memset(arglist,0,sizeof(arglist));
     	str[n]='\0';
     	process_str(str,arglist,&argno);
-    	for(i=0;i<=argno;i++)
+	h=open("myhistory.txt",O_RDWR|O_CREAT,0666);
+	for(i=0;i<=argno;i++)
     	{
         	printf("Arguments passed = '%s' \n",arglist[i]);
 	
     	}
-		 write(h,arglist[0],sizeof(arglist[0]));
+		 write(h,arglist,sizeof(arglist));
+		 write(h,"\n",2);
 		if(strcmp(arglist[0],"myhistory")==0)
 		{
 			fd1=open("myhistory.txt",O_RDONLY);
