@@ -3,6 +3,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include<fcntl.h>
+#include<sys/types.h>
+#include<sys/wait.h>
 
 
 int process_str(char *str,char arglist[100][100],int *nargs)
@@ -43,6 +45,7 @@ int main( int argc, char **argv)
 	char ch;
 	char history[50][100];
 	char path[100],buf[100],path1[100],path2[100];
+	int pid;
 	char str[100], arglist[100][100];
 	printf("WELCOME TO MINI-LINUX\n");
 	printf("My minishell commands are mycat, myhead, mytail, mycp, myrm\n");
@@ -62,6 +65,7 @@ int main( int argc, char **argv)
         	printf("Arguments passed = '%s' \n",arglist[i]);
 
 	}
+	if(pid==0){
 		if(strcmp(arglist[0],"myhistory")==0)
 		{
 			for(int i=0; i<hcnt;i++)
@@ -223,10 +227,12 @@ int main( int argc, char **argv)
     	printf("Exiting from the program\n");
     	exit(1);
 	}
-	
-		else {
-			printf("wrong command passed\n");
-		}
-
 	}
+    	else if(pid>0)
+    	{
+    	 wait(NULL);
+    	 exit(0);
+	}
+
+}
 }
